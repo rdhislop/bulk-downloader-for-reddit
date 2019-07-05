@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-This program downloads imgur, gfycat and direct image and video links of 
+This program downloads imgur, gfycat and direct image and video links of
 saved posts from a reddit account. It is written in Python 3.
 """
 
@@ -81,18 +81,23 @@ def parseArguments(arguments=[]):
                         help="Specifies the directory where posts will be " \
                         "downloaded to",
                         metavar="DIRECTORY")
-        
+
     parser.add_argument("--NoDownload",
                         help="Just gets the posts and stores them in a file" \
                              " for downloading later",
                         action="store_true",
                         default=False)
-    
+
+    parser.add_argument("--NoDownloadVideos",
+                        help="Only download static image files",
+                        action="store_true",
+                        default=False)
+
     parser.add_argument("--verbose","-v",
                         help="Verbose Mode",
                         action="store_true",
                         default=False)
-    
+
     parser.add_argument("--quit","-q",
                         help="Auto quit afer the process finishes",
                         action="store_true",
@@ -127,7 +132,7 @@ def parseArguments(arguments=[]):
                              "name without r/. use \"frontpage\" for frontpage",
                         metavar="SUBREDDIT",
                         type=str)
-    
+
     parser.add_argument("--multireddit",
                         help="Triggers multireddit mode and takes "\
                              "multireddit's name without m/",
@@ -199,7 +204,7 @@ def checkConflicts():
 
     if not sum(values[x] for x in values) == 1:
         raise ProgramModeError("Invalid program mode")
-    
+
     if search+values["saved"] == 2:
         raise SearchModeError("You cannot search in your saved posts")
 
@@ -236,7 +241,7 @@ class PromptUser:
             return choices[int(choice)-1]
         else:
             return choice
-    
+
     def __init__(self):
         print("select program mode:")
         programModes = [
@@ -303,7 +308,7 @@ class PromptUser:
         elif programMode == "multireddit":
             GLOBAL.arguments.user = input("\nmultireddit owner: ")
             GLOBAL.arguments.multireddit = input("\nmultireddit: ")
-            
+
             print("\nselect sort type:")
             sortTypes = [
                 "hot","top","new","rising","controversial"
@@ -320,7 +325,7 @@ class PromptUser:
                 GLOBAL.arguments.time = timeFilter
             else:
                 GLOBAL.arguments.time = "all"
-        
+
         elif programMode == "submitted":
             GLOBAL.arguments.submitted = True
             GLOBAL.arguments.user = input("\nredditor: ")
@@ -341,19 +346,19 @@ class PromptUser:
                 GLOBAL.arguments.time = timeFilter
             else:
                 GLOBAL.arguments.time = "all"
-        
+
         elif programMode == "upvoted":
             GLOBAL.arguments.upvoted = True
             GLOBAL.arguments.user = input("\nredditor: ")
-        
+
         elif programMode == "saved":
             GLOBAL.arguments.saved = True
-        
+
         elif programMode == "log":
             while True:
                 GLOBAL.arguments.log = input("\nlog file directory:")
                 if Path(GLOBAL.arguments.log ).is_file():
-                    break 
+                    break
         while True:
             try:
                 GLOBAL.arguments.limit = int(input("\nlimit (0 for none): "))
@@ -405,7 +410,7 @@ def prepareAttributes():
             ATTRIBUTES["time"] = GLOBAL.arguments.time
 
     elif GLOBAL.arguments.subreddit is not None:
-        if type(GLOBAL.arguments.subreddit) == list:    
+        if type(GLOBAL.arguments.subreddit) == list:
             GLOBAL.arguments.subreddit = "+".join(GLOBAL.arguments.subreddit)
 
         ATTRIBUTES["subreddit"] = GLOBAL.arguments.subreddit
@@ -424,7 +429,7 @@ def prepareAttributes():
 
         if GLOBAL.arguments.sort == "rising":
             raise InvalidSortingType("Invalid sorting type has given")
-    
+
     ATTRIBUTES["limit"] = GLOBAL.arguments.limit
 
     return ATTRIBUTES
@@ -471,9 +476,9 @@ def isPostExists(POST):
             + extension
         )
         FILE_PATH = PATH / (
-            POST["postSubmitter"] 
-            + "_" + title 
-            + "_" + POST['postId'] 
+            POST["postSubmitter"]
+            + "_" + title
+            + "_" + POST['postId']
             + extension
         )
 
@@ -482,7 +487,7 @@ def isPostExists(POST):
         if OLD_FILE_PATH.exists() or \
            FILE_PATH.exists() or \
            SHORT_FILE_PATH.exists():
-           
+
             return True
 
     else:
@@ -503,7 +508,7 @@ def downloadPost(SUBMISSION):
     if SUBMISSION['postType'] in downloaders:
 
         if SUBMISSION['postType'] == "imgur":
-            
+
             while int(time.time() - lastRequestTime) <= 2:
                 pass
 
@@ -514,8 +519,8 @@ def downloadPost(SUBMISSION):
                             + str(int(IMGUR_RESET_TIME/60)) \
                             + " Minutes " \
                             + str(int(IMGUR_RESET_TIME%60)) \
-                            + " Seconds") 
-            
+                            + " Seconds")
+
             if credit['ClientRemaining'] < 25 or credit['UserRemaining'] < 25:
                 printCredit = {"noPrint":False}
             else:
@@ -583,7 +588,7 @@ def download(submissions):
 
         try:
             downloadPost(submissions[i])
-        
+
         except FileAlreadyExistsError:
             print("It already exists")
             duplicates += 1
@@ -622,7 +627,11 @@ def download(submissions):
         except NoSuitablePost:
             print("No match found, skipping...")
             downloadedCount -= 1
-        
+
+        except NotAnImage:
+            print("Not an image file.  Skipping.")
+            downloadedCount -= 1
+
         except Exception as exception:
             # raise exception
             print(
@@ -708,7 +717,7 @@ def main():
 
 if __name__ == "__main__":
 
-    log_stream = StringIO()    
+    log_stream = StringIO()
     logging.basicConfig(stream=log_stream, level=logging.INFO)
 
     try:
@@ -720,7 +729,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         if GLOBAL.directory is None:
             GLOBAL.directory = Path(".\\")
-        
+
     except Exception as exception:
         if GLOBAL.directory is None:
             GLOBAL.directory = Path(".\\")

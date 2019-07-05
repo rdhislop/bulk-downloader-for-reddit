@@ -87,3 +87,6 @@ class NoSuitablePost(Exception):
 
 class ImgurLimitError(Exception):
     pass
+
+class NotAnImage(Exception):
+    pass
