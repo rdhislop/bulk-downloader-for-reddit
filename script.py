@@ -507,7 +507,8 @@ def downloadPost(SUBMISSION):
     print()
     if SUBMISSION['postType'] in downloaders:
 
-        if SUBMISSION['postType'] == "imgur":
+        rate_limit_imgur = 'imgur_mashape_key' not in GLOBAL.config
+        if SUBMISSION['postType'] == "imgur" and rate_limit_imgur:
 
             while int(time.time() - lastRequestTime) <= 2:
                 pass

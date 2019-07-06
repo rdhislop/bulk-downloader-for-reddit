@@ -240,7 +240,6 @@ class Imgur:
 
         imgurID = self.getId(post['postURL'])
         content = self.getLink(imgurID)
-
         if not os.path.exists(directory): os.makedirs(directory)
 
         if content['type'] == 'image':
@@ -379,13 +378,13 @@ class Imgur:
     @staticmethod
     def initImgur():
         """Initialize imgur api"""
-
         config = GLOBAL.config
         return imgurpython.ImgurClient(
             config['imgur_client_id'],
             config['imgur_client_secret'],
             mashape_key=config.get('imgur_mashape_key', None),
         )
+
     def getId(self,submissionURL):
         """Extract imgur post id
         and determine if its a single image or album
