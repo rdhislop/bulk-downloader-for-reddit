@@ -304,6 +304,7 @@ class Imgur:
                     imageURL = images[i]['mp4']
                 except KeyError:
                     imageURL = images[i]['link']
+                images[i]['imageURL'] = imageURL
                 images[i]['Ext'] = getExtension(imageURL)
             if GLOBAL.arguments.NoDownloadVideos:
                 images = [i for i in images if i['Ext'] in ('.jpg', '.png')]
@@ -318,7 +319,7 @@ class Imgur:
                 os.makedirs(folderDir)
 
             for i in range(imagesLenght):
-
+                imageURL = images[i]['imageURL']
                 fileName = (str(i+1)
                             + "_"
                             + nameCorrector(str(images[i]['title']))
@@ -382,7 +383,8 @@ class Imgur:
         config = GLOBAL.config
         return imgurpython.ImgurClient(
             config['imgur_client_id'],
-            config['imgur_client_secret']
+            config['imgur_client_secret'],
+            mashape_key=config.get('imgur_mashape_key', None),
         )
     def getId(self,submissionURL):
         """Extract imgur post id
